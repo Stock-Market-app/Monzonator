@@ -1,5 +1,6 @@
 #!/bin/bash
 lang=""
+#handle flags
 while getopts ":l:" opt; do
 	case $opt in
 		l)
@@ -20,11 +21,14 @@ while getopts ":l:" opt; do
 	esac
 done
 
+#check for monzonator results
 if [ ! -d "Results/${lang}" ]; then
 	echo "looks like you need the Monzonator!"
 	exit 1
 fi
 
+#grep for vulnerable functions <<THIS IS WHAT YOU EDIT IF YOU WANT TO SEARCH FOR DIFFERENT THINGS>>
+#its also super easy to add language support for both of these scripts.
 case "$lang" in
 	php)
 		vuln="exec(\|system(\|passthru(\|eval(\|require(\|include(\|file_get_contents\|move_uploaded_file\|unserialize\|SELECT.*FROM"
@@ -47,6 +51,8 @@ case "$lang" in
 		ext="py"
 		;;
 esac
+
+#search results and compile "reports"
 echo "Processing..."
 cat Results/$lang/dirlist | while read line; do
 	find $line -name "*.${ext}" > $line/target_files
@@ -55,7 +61,7 @@ cat Results/$lang/dirlist | while read line; do
 	done
 	cat $line/vulnerability_results| cut -d ":" -f 1| uniq -c | sort -n -r >> $line/MonReport
 done
-
+#create overview and output
 echo "Full Results (individual reports in project folders)"
 cat Results/$lang/*/MonReport | sort -n -r >> Results/$lang/FullReport
 cat Results/$lang/FullReport
